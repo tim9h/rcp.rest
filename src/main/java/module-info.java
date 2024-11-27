@@ -5,5 +5,6 @@ module rcp.rest {
 	requires com.google.guice;
 	requires org.apache.logging.log4j;
 	requires transitive javafx.controls;
+	requires io.javalin;
 
 }
