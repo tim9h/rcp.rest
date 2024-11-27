@@ -40,11 +40,13 @@ public class RestView implements CCard {
 			
 			@Override
 			public void onEnable() {
+				eventManager.showWaitingIndicator();
 				controller.start();
 			}
 			
 			@Override
 			public void onDisable() {
+				eventManager.showWaitingIndicator();
 				controller.stop();
 			}
 			
