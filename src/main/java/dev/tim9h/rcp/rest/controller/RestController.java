@@ -1,5 +1,7 @@
 package dev.tim9h.rcp.rest.controller;
 
+import java.time.LocalTime;
+
 import org.apache.logging.log4j.Logger;
 
 import com.google.inject.Inject;
@@ -20,26 +22,36 @@ public class RestController {
 
 	@Inject
 	private Settings settings;
-	
+
 	@Inject
 	private EventManager em;
 
 	private Javalin server;
 
+	private Thread thread;
+
 	public void start() {
 		logger.info(() -> "Starting Rest controller");
 		var port = settings.getInt(RestViewFactory.SETTING_PORT);
-		server = Javalin.create().start(port);
-		server.get("hello", (Handler) ctx -> ctx.result("hello world"));
-		logger.info(() -> "Rest controller started");
-		em.echo("Rest controller started");
+		thread = new Thread(() -> {
+			server = Javalin.create().start(port);
+			server.get("hello", (Handler) ctx -> ctx.result("hello world at " + LocalTime.now().toString()));
+			logger.info(() -> "Rest controller started");
+			em.echoAsync("Rest controller started");
+		}, "RestController");
+		thread.setDaemon(true);
+		thread.start();
 	}
 
 	public void stop() {
-		if (server != null) {
+		if (thread != null && server != null) {
 			server.stop();
+			server = null;
 			logger.info(() -> "Stopping Rest Controller");
-			em.echo("Rest controller stopped");
+			em.echoAsync("Rest controller stopped");
+			thread.interrupt();
+			thread = null;
+			logger.debug(() -> "Rest thread stopped");
 		} else {
 			em.echo("Rest controller not running");
 		}

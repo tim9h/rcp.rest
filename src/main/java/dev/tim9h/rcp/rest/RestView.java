@@ -11,7 +11,6 @@ import com.google.inject.Inject;
 import dev.tim9h.rcp.event.EventManager;
 import dev.tim9h.rcp.logging.InjectLogger;
 import dev.tim9h.rcp.rest.controller.RestController;
-import dev.tim9h.rcp.settings.Settings;
 import dev.tim9h.rcp.spi.CCard;
 import dev.tim9h.rcp.spi.Mode;
 
@@ -23,9 +22,6 @@ public class RestView implements CCard {
 	@Inject
 	private EventManager eventManager;
 
-	@Inject
-	private Settings settings;
-	
 	@Override
 	public String getName() {
 		return "rest";
@@ -40,13 +36,13 @@ public class RestView implements CCard {
 			
 			@Override
 			public void onEnable() {
-				eventManager.showWaitingIndicator();
+				eventManager.showWaitingIndicatorAsync();
 				controller.start();
 			}
 			
 			@Override
 			public void onDisable() {
-				eventManager.showWaitingIndicator();
+				eventManager.showWaitingIndicatorAsync();
 				controller.stop();
 			}
 			
