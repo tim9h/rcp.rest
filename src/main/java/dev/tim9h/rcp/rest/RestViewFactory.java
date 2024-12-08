@@ -10,6 +10,10 @@ import dev.tim9h.rcp.spi.CCardFactory;
 public class RestViewFactory implements CCardFactory  {
 
 	public static final String SETTING_PORT = "rest.port";
+	
+	public static final String SETTING_USER = "rest.user";
+	
+	public static final String SETTING_PASS = "rest.pass";
 
 	@Inject 
 	private RestView view;
@@ -26,7 +30,7 @@ public class RestViewFactory implements CCardFactory  {
 
 	@Override
 	public Map<String, String> getSettingsContributions() {
-		 return Map.of(SETTING_PORT, "8080");
+		 return Map.of(SETTING_PORT, "8080", SETTING_USER, "", SETTING_PASS, "");
 	}
 
 }

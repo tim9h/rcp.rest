@@ -1,6 +1,7 @@
 package dev.tim9h.rcp.rest.controller;
 
-import java.time.LocalTime;
+import static dev.tim9h.rcp.rest.controller.AuthManager.Role.OPERATOR;
+
 import java.util.function.Consumer;
 
 import org.apache.logging.log4j.Logger;
@@ -32,23 +33,28 @@ public class RestController {
 
 	private Thread thread;
 
+	@Inject
+	private AuthManager authManager;
+
 	public void start() {
 		logger.info(() -> "Starting Rest controller");
 		var port = settings.getInt(RestViewFactory.SETTING_PORT);
 		thread = new Thread(() -> {
-			server = Javalin.create().start(port);
-			server.get("hello", ctx -> ctx.result("hello world at " + LocalTime.now().toString()));
+			server = Javalin
+					.create(config -> config.router.mount(router -> router.beforeMatched(authManager::handleAccess)))
+					.start(port);
+
 			logger.info(() -> "Rest controller started on port " + port);
 			em.echoAsync("Rest controller started");
 
 			createPostMapping("logiled", "color", color -> em.post(new CcEvent("LOGILED", color)));
-			
+
 			createPostMapping("next", () -> em.post(new CcEvent("next")));
 			createPostMapping("previous", () -> em.post(new CcEvent("previous")));
 			createPostMapping("play", () -> em.post(new CcEvent("play")));
 			createPostMapping("pause", () -> em.post(new CcEvent("pause")));
 			createPostMapping("stop", () -> em.post(new CcEvent("stop")));
-			
+
 			createPostMapping("lock", () -> em.post(new CcEvent("lock")));
 			createPostMapping("shutdown", "time", time -> em.post(new CcEvent("shutdown", time)));
 
@@ -56,7 +62,7 @@ public class RestController {
 		thread.setDaemon(true);
 		thread.start();
 	}
-	
+
 	private void createPostMapping(String path, Runnable runnable) {
 		createPostMapping(path, "", _ -> runnable.run());
 	}
@@ -65,12 +71,13 @@ public class RestController {
 		server.post(path, ctx -> {
 			try {
 				var value = ctx.queryParam(param);
-				logger.debug(() -> String.format("Handling post  request for %s (%s: %s)", path, param, value));
+				logger.debug(() -> String.format("Handling post  request for %s%s", path,
+						param.equals("") ? "" : " (" + param + ": " + value + ")"));
 				Platform.runLater(() -> consumer.accept(value));
 			} catch (IllegalArgumentException e) {
 				logger.warn(() -> String.format("Path parameter %s for post mapping %s not found", param, path));
 			}
-		});
+		}, OPERATOR);
 		logger.info(() -> "Post mapping created: " + path);
 	}
 
