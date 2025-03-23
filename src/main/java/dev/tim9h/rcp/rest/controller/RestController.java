@@ -45,7 +45,7 @@ public class RestController {
 					.start(port);
 
 			logger.info(() -> "Rest controller started on port " + port);
-			em.echoAsync("Rest controller started");
+			em.echo("Rest controller started");
 
 			createPostMapping("logiled", "color", color -> em.post(new CcEvent("LOGILED", color)));
 
@@ -86,7 +86,7 @@ public class RestController {
 			server.stop();
 			server = null;
 			logger.info(() -> "Stopping Rest Controller");
-			em.echoAsync("Rest controller stopped");
+			em.echo("Rest controller stopped");
 			thread.interrupt();
 			thread = null;
 			logger.debug(() -> "Rest thread stopped");
