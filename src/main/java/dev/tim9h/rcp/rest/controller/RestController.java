@@ -44,7 +44,7 @@ public class RestController {
 
 	private boolean isPlaying;
 
-	private record Track(String song, String artist, String album, boolean isPlaying) {
+	public record Track(String title, String artist, String album, boolean isPlaying) {
 	}
 
 	@Inject
