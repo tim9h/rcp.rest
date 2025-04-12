@@ -103,7 +103,6 @@ public class RestController {
 				if (response != null) {
 					response.accept(ctx);
 				}
-				response.accept(ctx);
 			} catch (IllegalArgumentException e) {
 				logger.warn(() -> String.format("Path parameter %s for post mapping %s not found", param, path));
 			}
