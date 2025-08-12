@@ -118,7 +118,6 @@ public class RestController {
 	private void subscribeToNp() {
 		em.listen("np", currentTrack -> {
 			if (currentTrack.length < 4) {
-				logger.warn(() -> "Not enough parameters for Now Playing event");
 				return;
 			}
 			this.title = (String) currentTrack[0];
@@ -129,6 +128,7 @@ public class RestController {
 	}
 
 	private void returnCurrentTrack(Context ctx) {
+		em.post("np");
 		if (title == null || artist == null || album == null) {
 			ctx.status(HttpStatus.NOT_FOUND);
 			return;
