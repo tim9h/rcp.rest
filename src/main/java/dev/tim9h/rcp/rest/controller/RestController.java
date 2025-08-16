@@ -10,7 +10,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
-import dev.tim9h.rcp.event.CcEvent;
 import dev.tim9h.rcp.event.EventManager;
 import dev.tim9h.rcp.logging.InjectLogger;
 import dev.tim9h.rcp.rest.RestViewFactory;
@@ -67,16 +66,19 @@ public class RestController {
 			logger.info(() -> "Rest controller started on port " + port);
 			em.echo("Rest controller started");
 
-			createPostMapping("logiled", "color", color -> em.post(new CcEvent("LOGILED", color)));
+			createPostMapping("logiled", "color", color -> em.post("LOGILED", color));
 
-			createPostMapping("next", () -> em.post(new CcEvent("next")));
-			createPostMapping("previous", () -> em.post(new CcEvent("previous")));
-			createPostMapping("play", () -> em.post(new CcEvent("play")));
-			createPostMapping("pause", () -> em.post(new CcEvent("pause")));
-			createPostMapping("stop", () -> em.post(new CcEvent("stop")));
+			createPostMapping("next", () -> em.post("next"));
+			createPostMapping("previous", () -> em.post("previous"));
+			createPostMapping("play", () -> em.post("play"));
+			createPostMapping("pause", () -> em.post("pause"));
+			createPostMapping("stop", () -> em.post("stop"));
+			createPostMapping("volumeup", () -> em.post("volumeup"));
+			createPostMapping("volumedown", () -> em.post("volumedown"));
+			createPostMapping("mute", () -> em.post("mute"));
 
-			createPostMapping("lock", () -> em.post(new CcEvent("lock")));
-			createPostMapping("shutdown", "time", time -> em.post(new CcEvent("shutdown", time)));
+			createPostMapping("lock", () -> em.post("lock"));
+			createPostMapping("shutdown", "time", time -> em.post("shutdown", time));
 
 			createGetMapping("np", this::returnCurrentTrack);
 
@@ -117,7 +119,7 @@ public class RestController {
 
 	private void subscribeToNp() {
 		em.listen("np", currentTrack -> {
-			if (currentTrack.length < 4) {
+			if (currentTrack == null) {
 				return;
 			}
 			this.title = (String) currentTrack[0];
