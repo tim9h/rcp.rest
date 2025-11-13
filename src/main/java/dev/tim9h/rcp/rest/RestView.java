@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 
 import com.google.inject.Inject;
@@ -11,8 +12,11 @@ import com.google.inject.Inject;
 import dev.tim9h.rcp.event.EventManager;
 import dev.tim9h.rcp.logging.InjectLogger;
 import dev.tim9h.rcp.rest.controller.RestController;
+import dev.tim9h.rcp.service.CryptoService;
+import dev.tim9h.rcp.settings.Settings;
 import dev.tim9h.rcp.spi.CCard;
 import dev.tim9h.rcp.spi.Mode;
+import dev.tim9h.rcp.spi.TreeNode;
 
 public class RestView implements CCard {
 	
@@ -21,6 +25,12 @@ public class RestView implements CCard {
 
 	@Inject
 	private EventManager eventManager;
+	
+	@Inject
+	private CryptoService cryptoService;
+	
+	@Inject
+	private Settings settings;
 
 	@Override
 	public String getName() {
@@ -51,6 +61,32 @@ public class RestView implements CCard {
 				return "rest";
 			}
 		}));
+	}
+	
+	@Override
+	public Optional<TreeNode<String>> getModelessCommands() {
+		var password = new TreeNode<String>(StringUtils.EMPTY);
+		password.add("rest").add("password");
+		return Optional.of(password);
+	}
+	
+	@Override
+	public void initBus(EventManager eventManager) {
+		CCard.super.initBus(eventManager);
+		eventManager.listen("rest", data -> {
+			if (data == null) {
+				return;
+			}
+			if ("password".equals(data[0])) {
+				if (data.length > 1) {
+					var passwordHash = cryptoService.hash((String) data[1]);
+					settings.persist(RestViewFactory.SETTING_PASS, passwordHash);
+					eventManager.echo("REST password updated");
+				} else {
+					eventManager.echo("No password provided");
+				}
+			}
+		});
 	}
 
 }

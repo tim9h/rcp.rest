@@ -6,5 +6,6 @@ module rcp.rest {
 	requires org.apache.logging.log4j;
 	requires transitive javafx.controls;
 	requires io.javalin;
+	requires org.apache.commons.lang3;
 
 }
