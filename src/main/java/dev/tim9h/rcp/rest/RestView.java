@@ -16,6 +16,7 @@ import dev.tim9h.rcp.service.CryptoService;
 import dev.tim9h.rcp.settings.Settings;
 import dev.tim9h.rcp.spi.CCard;
 import dev.tim9h.rcp.spi.Mode;
+import dev.tim9h.rcp.spi.StringNode;
 import dev.tim9h.rcp.spi.TreeNode;
 
 public class RestView implements CCard {
@@ -65,7 +66,7 @@ public class RestView implements CCard {
 	
 	@Override
 	public Optional<TreeNode<String>> getModelessCommands() {
-		var password = new TreeNode<String>(StringUtils.EMPTY);
+		var password = new StringNode();
 		password.add("rest").add("password");
 		return Optional.of(password);
 	}
