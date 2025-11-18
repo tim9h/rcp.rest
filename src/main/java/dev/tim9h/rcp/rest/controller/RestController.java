@@ -57,7 +57,14 @@ public class RestController {
 
 	public void start() {
 		logger.info(() -> "Starting Rest controller");
+
 		var port = settings.getInt(RestViewFactory.SETTING_PORT);
+		if (port == null) {
+			logger.error("Rest controller settings are not properly configured");
+			em.echo("Rest controller settings are not properly configured");
+			return;
+		}
+
 		thread = new Thread(() -> {
 			server = Javalin
 					.create(config -> config.router.mount(router -> router.beforeMatched(authManager::handleAccess)))
@@ -99,13 +106,13 @@ public class RestController {
 		server.post(path, ctx -> {
 			try {
 				var value = ctx.queryParam(param);
-				logger.debug(() -> String.format("Handling post  request for %s%s", path,
+				logger.debug(() -> String.format("Handling post request for %s%s", path,
 						param.equals("") ? "" : " (" + param + ": " + value + ")"));
 				Platform.runLater(() -> consumer.accept(value));
 				if (response != null) {
 					response.accept(ctx);
 				}
-			} catch (IllegalArgumentException e) {
+			} catch (IllegalArgumentException _) {
 				logger.warn(() -> String.format("Path parameter %s for post mapping %s not found", param, path));
 			}
 		}, OPERATOR);

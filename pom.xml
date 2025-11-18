@@ -111,8 +111,7 @@
 							<artifactSet>
 								<includes>
 									<include>io.javalin:javalin</include>
-									<inculde>
-										org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api </inculde>
+									<inculde>org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api</inculde>
 									<include>org.eclipse.jetty:jetty-http</include>
 									<include>org.eclipse.jetty:jetty-util</include>
 									<include>org.eclipse.jetty:jetty-server</include>
