@@ -56,8 +56,11 @@ public class AuthManager {
 		}
 		var allowedIps = settings.getStringList(RestViewFactory.SETTING_ALLOWEDIPS);
 		var ip = ctx.ip();
-		logger.debug(() -> "Request from IP: " + ip);
-		return allowedIps.contains(ip);
+		var allowed = allowedIps.contains(ip);
+		if (!allowed) {
+			logger.info(() -> "Access attempt from disallowed IP: " + ip);
+		}
+		return allowed;
 	}
 
 }
