@@ -16,6 +16,8 @@ import io.javalin.security.RouteRole;
 @Singleton
 public class AuthManager {
 
+	private static final String IPV6_LOCALHOST = "[0:0:0:0:0:0:0:1]";
+
 	private Settings settings;
 
 	private CryptoService cryptoService;
@@ -56,9 +58,9 @@ public class AuthManager {
 		}
 		var allowedIps = settings.getStringList(RestViewFactory.SETTING_ALLOWEDIPS);
 		var ip = ctx.ip();
-		var allowed = allowedIps.contains(ip);
+		var allowed = allowedIps.contains(ip) || IPV6_LOCALHOST.equals(ip);
 		if (!allowed) {
-			logger.info(() -> "Access attempt from disallowed IP: " + ip);
+			logger.info(() -> "Access attempt from disallowed IP: " + ip + " from host " + ctx.host());
 		}
 		return allowed;
 	}
