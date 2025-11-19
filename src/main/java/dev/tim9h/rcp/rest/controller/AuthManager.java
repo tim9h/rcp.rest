@@ -1,52 +1,63 @@
 package dev.tim9h.rcp.rest.controller;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import org.apache.logging.log4j.Logger;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import dev.tim9h.rcp.logging.InjectLogger;
 import dev.tim9h.rcp.rest.RestViewFactory;
+import dev.tim9h.rcp.service.CryptoService;
 import dev.tim9h.rcp.settings.Settings;
 import io.javalin.http.Context;
-import io.javalin.http.Header;
 import io.javalin.http.UnauthorizedResponse;
 import io.javalin.security.RouteRole;
 
 @Singleton
 public class AuthManager {
 
-	@Inject
 	private Settings settings;
+
+	private CryptoService cryptoService;
+	
+	@InjectLogger
+	private Logger logger;
 
 	public enum Role implements RouteRole {
 		ANYONE, OPERATOR
 	}
 
-	private record Pair(String user, String password) {
+	@Inject
+	public AuthManager(Settings settings, CryptoService cryptoService) {
+		this.settings = settings;
+		this.cryptoService = cryptoService;
 	}
 
 	public void handleAccess(Context ctx) {
-		var permittedRoles = ctx.routeRoles();
-		if (permittedRoles.contains(Role.ANYONE)) {
+		if (ctx.routeRoles().contains(Role.ANYONE)) {
 			return;
 		}
-		if (getUserRoles(ctx).stream().anyMatch(permittedRoles::contains)) {
+		if (apiKeyValid(ctx) && ipAllowed(ctx)) {
 			return;
 		}
-		ctx.header(Header.WWW_AUTHENTICATE, "Basic");
 		throw new UnauthorizedResponse();
 	}
 
-	private List<Role> getUserRoles(Context ctx) {
-		var user = settings.getString(RestViewFactory.SETTING_USER);
-		var pass = settings.getString(RestViewFactory.SETTING_PASS);
-		var userRolesMap = Map.of(new Pair(user, pass), List.of(Role.OPERATOR)); 
-		return Optional.ofNullable(ctx.basicAuthCredentials())
-				.map(credentials -> userRolesMap
-						.getOrDefault(new Pair(credentials.getUsername(), credentials.getPassword()), List.of()))
-				.orElse(List.of());
+	private boolean apiKeyValid(Context ctx) {
+		var apiKey = ctx.header("X-API-Key");
+		var storedHash = settings.getString(RestViewFactory.SETTING_APIKEY);
+		return cryptoService.hashMatches(apiKey, storedHash);
+	}
+
+	private boolean ipAllowed(Context ctx) {
+		if (ctx.host().startsWith("localhost")) {
+			logger.debug(() -> "Request from localhost, allowing access");
+			return true;
+		}
+		var allowedIps = settings.getStringList(RestViewFactory.SETTING_ALLOWEDIPS);
+		var ip = ctx.ip();
+		logger.debug(() -> "Request from IP: " + ip);
+		return allowedIps.contains(ip);
 	}
 
 }

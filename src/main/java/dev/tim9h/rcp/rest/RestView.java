@@ -1,9 +1,12 @@
 package dev.tim9h.rcp.rest;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 
 import com.google.inject.Inject;
@@ -66,7 +69,7 @@ public class RestView implements CCard {
 	@Override
 	public Optional<TreeNode<String>> getModelessCommands() {
 		var password = new StringNode();
-		password.add("rest").add("password");
+		password.add("rest").add("genapikey");
 		return Optional.of(password);
 	}
 	
@@ -77,16 +80,26 @@ public class RestView implements CCard {
 			if (data == null) {
 				return;
 			}
-			if ("password".equals(data[0])) {
-				if (data.length > 1) {
-					var passwordHash = cryptoService.hash((String) data[1]);
-					settings.persist(RestViewFactory.SETTING_PASS, passwordHash);
-					eventManager.echo("REST password updated");
-				} else {
-					eventManager.echo("No password provided");
-				}
+			if ("genapikey".equals(data[0])) {
+				generateApiKey();
 			}
 		});
+	}
+
+	private void generateApiKey() {
+		var apiKey = cryptoService.gernateApiKey();
+		var hash = cryptoService.hashSha256(apiKey);
+		settings.persist(RestViewFactory.SETTING_APIKEY, hash);
+		logger.info(() -> "New API key generated");
+		copyToClipboard(apiKey);
+		eventManager.echo(apiKey, "New API key generated and copied to clipboard");
+	}
+	
+	private void copyToClipboard(String apiKey) {
+		if (StringUtils.isNotBlank(apiKey)) {
+			logger.debug(() -> "API key copied to clipboard");
+			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(apiKey), null);
+		}
 	}
 
 }

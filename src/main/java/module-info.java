@@ -7,5 +7,7 @@ module rcp.rest {
 	requires transitive javafx.controls;
 	requires io.javalin;
 	requires org.apache.commons.lang3;
+	requires java.desktop;
+	requires java.datatransfer;
 
 }
