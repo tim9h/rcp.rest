@@ -73,7 +73,13 @@ public class RestController {
 			logger.info(() -> "Rest controller started on port " + port);
 			em.echo("Rest controller started");
 
-			createPostMapping("logiled", "color", color -> em.post("LOGILED", color));
+			createPostMapping("logiled", "color", color -> {
+				if ("on".equalsIgnoreCase(color)) {
+					em.post("LOGILED");
+				} else {
+					em.post("LOGILED", color);
+				}
+			});
 
 			createPostMapping("next", () -> em.post("next"));
 			createPostMapping("previous", () -> em.post("previous"));
@@ -86,7 +92,7 @@ public class RestController {
 
 			createPostMapping("lock", () -> em.post("lock"));
 			createPostMapping("shutdown", "time", time -> em.post("shutdown", time));
-
+			
 			createGetMapping("np", this::returnCurrentTrack);
 
 		}, "RestController");
