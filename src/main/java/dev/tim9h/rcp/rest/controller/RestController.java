@@ -73,13 +73,9 @@ public class RestController {
 			logger.info(() -> "Rest controller started on port " + port);
 			em.echo("Rest controller started");
 
-			createPostMapping("logiled", "color", color -> {
-				if ("on".equalsIgnoreCase(color)) {
-					em.post("LOGILED");
-				} else {
-					em.post("LOGILED", color);
-				}
-			});
+			createPostMapping("logiled", "color", this::setLogiledColor);
+			createGetMapping("logiled", this::returnLogiledStatus);
+			createGetMapping("logiledcolor", this::returnLogiledColor);
 
 			createPostMapping("next", () -> em.post("next"));
 			createPostMapping("previous", () -> em.post("previous"));
@@ -92,7 +88,7 @@ public class RestController {
 
 			createPostMapping("lock", () -> em.post("lock"));
 			createPostMapping("shutdown", "time", time -> em.post("shutdown", time));
-			
+
 			createGetMapping("np", this::returnCurrentTrack);
 
 		}, "RestController");
@@ -130,6 +126,30 @@ public class RestController {
 		logger.info(() -> "Get mapping created: " + path);
 	}
 
+	private void setLogiledColor(String color) {
+		if ("on".equalsIgnoreCase(color)) {
+			em.post("LOGILED");
+		} else {
+			em.post("LOGILED", color);
+		}
+	}
+
+	private void returnLogiledStatus(Context ctx) {
+		var enabled = settings.getStringSet("core.modes").contains("logiled");
+		ctx.result(Boolean.toString(enabled));
+		ctx.contentType("text/plain");
+		ctx.status(HttpStatus.OK);
+		logger.debug(() -> "Returning logiled status: " + enabled);
+	}
+
+	private void returnLogiledColor(Context ctx) {
+		var color = settings.getString("logiled.lighting.color");
+		ctx.result(color);
+		ctx.contentType("text/plain");
+		ctx.status(HttpStatus.OK);
+		logger.debug(() -> "Returning logiled color: " + color);
+	}
+	
 	private void subscribeToNp() {
 		em.listen("np", currentTrack -> {
 			if (currentTrack == null) {
