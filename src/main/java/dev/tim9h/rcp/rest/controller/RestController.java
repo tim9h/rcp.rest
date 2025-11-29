@@ -47,6 +47,9 @@ public class RestController {
 
 	public record Track(String title, String artist, String album, boolean isPlaying) {
 	}
+	
+	public record LogiledStatus(boolean enabled, String color) {
+	}
 
 	@Inject
 	private AuthManager authManager;
@@ -77,7 +80,6 @@ public class RestController {
 
 			createPostMapping(LOGILED, "color", this::setLogiledColor);
 			createGetMapping(LOGILED, this::returnLogiledStatus);
-			createGetMapping("logiled/color", this::returnLogiledColor);
 
 			createPostMapping("next", () -> em.post("next"));
 			createPostMapping("previous", () -> em.post("previous"));
@@ -138,20 +140,14 @@ public class RestController {
 
 	private void returnLogiledStatus(Context ctx) {
 		var enabled = settings.getStringSet("core.modes").contains(LOGILED);
+		var color = settings.getString("logiled.lighting.color");
+		var status = new LogiledStatus(enabled, color);
 		ctx.result(Boolean.toString(enabled));
-		ctx.contentType("text/plain");
+		ctx.json(status);
 		ctx.status(HttpStatus.OK);
-		logger.debug(() -> "Returning logiled status: " + enabled);
+		logger.debug(() -> "Returning logiled status: " + enabled + ", color: " + color);
 	}
 
-	private void returnLogiledColor(Context ctx) {
-		var color = settings.getString("logiled.lighting.color");
-		ctx.result(color);
-		ctx.contentType("text/plain");
-		ctx.status(HttpStatus.OK);
-		logger.debug(() -> "Returning logiled color: " + color);
-	}
-	
 	private void subscribeToNp() {
 		em.listen("np", currentTrack -> {
 			if (currentTrack == null) {
