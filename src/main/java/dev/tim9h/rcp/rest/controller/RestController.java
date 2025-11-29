@@ -22,6 +22,8 @@ import javafx.application.Platform;
 @Singleton
 public class RestController {
 
+	private static final String LOGILED = "logiled";
+
 	@InjectLogger
 	private Logger logger;
 
@@ -73,9 +75,9 @@ public class RestController {
 			logger.info(() -> "Rest controller started on port " + port);
 			em.echo("Rest controller started");
 
-			createPostMapping("logiled", "color", this::setLogiledColor);
-			createGetMapping("logiled", this::returnLogiledStatus);
-			createGetMapping("logiledcolor", this::returnLogiledColor);
+			createPostMapping(LOGILED, "color", this::setLogiledColor);
+			createGetMapping(LOGILED, this::returnLogiledStatus);
+			createGetMapping("logiled/color", this::returnLogiledColor);
 
 			createPostMapping("next", () -> em.post("next"));
 			createPostMapping("previous", () -> em.post("previous"));
@@ -128,14 +130,14 @@ public class RestController {
 
 	private void setLogiledColor(String color) {
 		if ("on".equalsIgnoreCase(color)) {
-			em.post("LOGILED");
+			em.post(LOGILED);
 		} else {
-			em.post("LOGILED", color);
+			em.post(LOGILED, color);
 		}
 	}
 
 	private void returnLogiledStatus(Context ctx) {
-		var enabled = settings.getStringSet("core.modes").contains("logiled");
+		var enabled = settings.getStringSet("core.modes").contains(LOGILED);
 		ctx.result(Boolean.toString(enabled));
 		ctx.contentType("text/plain");
 		ctx.status(HttpStatus.OK);
